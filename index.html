@@ -2,70 +2,63 @@
 <html dir="rtl">
 <head>
     <meta charset="utf-8" />
-    <title>تطبيق وقود ليبيا - Pro</title>
+    <title>تطبيق وقود ليبيا</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        #map { height: 100vh; width: 100%; z-index: 1; }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: #f4f4f4; }
         
-        /* واجهة التطبيق العلوية */
+        /* تصميم الشريط العلوي الاحترافي */
         .app-header {
-            position: fixed; top: 0; width: 100%; background: #1a237e;
-            color: white; padding: 15px; text-align: center;
-            z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-            font-weight: bold; font-size: 1.2rem;
+            position: fixed; top: 0; width: 100%; height: 70px;
+            background: #1a237e; color: white; display: flex;
+            align-items: center; justify-content: space-between;
+            padding: 0 15px; z-index: 1000; box-sizing: border-box;
         }
 
-        /* شريط التحكم السفلي */
-        .bottom-nav {
-            position: fixed; bottom: 0; width: 100%; background: white;
-            display: flex; justify-content: space-around; padding: 10px 0;
-            z-index: 1000; border-top: 1px solid #ddd;
-        }
-        .nav-item { text-align: center; color: #1a237e; font-size: 0.8rem; text-decoration: none; }
+        .station-logo { height: 50px; width: 50px; border-radius: 50%; border: 2px solid white; }
 
-        /* أيقونة منسوب الوقود داخل الخريطة */
-        .fuel-badge {
-            background: white; border: 2px solid #1a237e;
-            border-radius: 5px; padding: 2px 5px; font-weight: bold;
-        }
+        .station-info { flex-grow: 1; text-align: center; margin-right: 10px; }
+        .station-info h2 { margin: 0; font-size: 1.1rem; }
+        .station-info p { margin: 0; font-size: 0.9rem; opacity: 0.8; }
+
+        #map { height: calc(100vh - 70px); width: 100%; margin-top: 70px; }
     </style>
 </head>
 <body>
 
-    <div class="app-header">⛽ وقود ليبيا - مراقبة الخزانات</div>
+    <div class="app-header">
+        <img src="logo.png" alt="Logo" class="station-logo">
+        <div class="station-info">
+            <h2 id="city-name">ليبيا</h2>
+            <p id="station-name">اختر محطة من الخريطة</p>
+        </div>
+        <div style="width: 50px;"></div> </div>
 
     <div id="map"></div>
 
-    <div class="bottom-nav">
-        <a href="#" class="nav-item">📍 الخريطة</a>
-        <a href="#" class="nav-item">🔍 بحث</a>
-        <a href="#" class="nav-item">📊 الخزانات</a>
-    </div>
-
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        var map = L.map('map', { zoomControl: false }).setView([32.8872, 13.1913], 12);
+        var map = L.map('map').setView([32.8872, 13.1913], 12);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-        // محاكاة بيانات الحساسات (Level Sensing)
+        // وظيفة لتحديث النص فوق لما تضغط على المحطة
+        function updateHeader(city, station) {
+            document.getElementById('city-name').innerText = city;
+            document.getElementById('station-name').innerText = station;
+        }
+
+        // محطات تجريبية
         var stations = [
-            { name: "محطة زاوية الدهماني", level: 85, lat: 32.895, lng: 13.195, status: "متوفر" },
-            { name: "محطة حي الأندلس", level: 12, lat: 32.882, lng: 13.150, status: "شبه فارغ" }
+            { city: "طرابلس", name: "محطة زاوية الدهماني", lat: 32.895, lng: 13.195 },
+            { city: "بنغازي", name: "محطة الفويهات", lat: 32.116, lng: 20.066 }
         ];
 
         stations.forEach(function(s) {
-            var color = s.level > 20 ? "green" : "red";
             var marker = L.marker([s.lat, s.lng]).addTo(map);
-            
-            marker.bindPopup(`
-                <div style="text-align:right;">
-                    <b>${s.name}</b><br>
-                    مستوى الوقود: <b style="color:${color}">${s.level}%</b><br>
-                    الحالة: ${s.status}
-                </div>
-            `);
+            marker.on('click', function() {
+                updateHeader(s.city, s.name);
+            });
         });
     </script>
 </body>
