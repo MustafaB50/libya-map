@@ -2,41 +2,70 @@
 <html dir="rtl">
 <head>
     <meta charset="utf-8" />
-    <title>خريطة وقود ليبيا</title>
+    <title>تطبيق وقود ليبيا - Pro</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
-        #map { height: 100vh; width: 100%; }
-        body { margin: 0; font-family: sans-serif; }
+        body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        #map { height: 100vh; width: 100%; z-index: 1; }
+        
+        /* واجهة التطبيق العلوية */
+        .app-header {
+            position: fixed; top: 0; width: 100%; background: #1a237e;
+            color: white; padding: 15px; text-align: center;
+            z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            font-weight: bold; font-size: 1.2rem;
+        }
+
+        /* شريط التحكم السفلي */
+        .bottom-nav {
+            position: fixed; bottom: 0; width: 100%; background: white;
+            display: flex; justify-content: space-around; padding: 10px 0;
+            z-index: 1000; border-top: 1px solid #ddd;
+        }
+        .nav-item { text-align: center; color: #1a237e; font-size: 0.8rem; text-decoration: none; }
+
+        /* أيقونة منسوب الوقود داخل الخريطة */
+        .fuel-badge {
+            background: white; border: 2px solid #1a237e;
+            border-radius: 5px; padding: 2px 5px; font-weight: bold;
+        }
     </style>
 </head>
 <body>
+
+    <div class="app-header">⛽ وقود ليبيا - مراقبة الخزانات</div>
+
     <div id="map"></div>
+
+    <div class="bottom-nav">
+        <a href="#" class="nav-item">📍 الخريطة</a>
+        <a href="#" class="nav-item">🔍 بحث</a>
+        <a href="#" class="nav-item">📊 الخزانات</a>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // إعداد الخريطة على ليبيا
-        var map = L.map('map').setView([28.0339, 17.3308], 6);
+        var map = L.map('map', { zoomControl: false }).setView([32.8872, 13.1913], 12);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-        // أيقونات ملونة
-        function getIcon(color) {
-            return new L.Icon({
-                iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${color}.png`,
-                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-                iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
-            });
-        }
-
-        // بيانات المحطات (تقدر تزيدهم براحتك)
+        // محاكاة بيانات الحساسات (Level Sensing)
         var stations = [
-            { name: "محطة بنغازي - الرويسات", lat: 32.1167, lng: 20.0667, color: "green", status: "متوفر ✅" },
-            { name: "محطة طرابلس - طريق الشط", lat: 32.8950, lng: 13.1850, color: "orange", status: "زحمة ⚠️" },
-            { name: "محطة سبها - المركز", lat: 27.0377, lng: 14.4283, color: "red", status: "مقطوع ❌" }
+            { name: "محطة زاوية الدهماني", level: 85, lat: 32.895, lng: 13.195, status: "متوفر" },
+            { name: "محطة حي الأندلس", level: 12, lat: 32.882, lng: 13.150, status: "شبه فارغ" }
         ];
 
         stations.forEach(function(s) {
-            L.marker([s.lat, s.lng], {icon: getIcon(s.color)}).addTo(map)
-                .bindPopup(`<b>${s.name}</b><br>الحالة: ${s.status}`);
+            var color = s.level > 20 ? "green" : "red";
+            var marker = L.marker([s.lat, s.lng]).addTo(map);
+            
+            marker.bindPopup(`
+                <div style="text-align:right;">
+                    <b>${s.name}</b><br>
+                    مستوى الوقود: <b style="color:${color}">${s.level}%</b><br>
+                    الحالة: ${s.status}
+                </div>
+            `);
         });
     </script>
 </body>
