@@ -1,75 +1,84 @@
-<!DOCTYPE html>
+<!DOCTYPE html><!DOCTYPE html>
+<html دير = "rtl">
+<الرأس>
+    <meta charset="utf-8" />
+    <title>نظام مراقبة الوقود - ليبيا</title>
+    <meta name="viewport" content="width=device-width, original-scale=1.0">
+    <رابط <!DOCTYPE html>
 <html dir="rtl">
 <head>
     <meta charset="utf-8" />
-    <title>تطبيق وقود ليبيا - Level Sensing</title>
+    <title>نظام مراقبة الوقود - ليبيا</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <style>
         body { margin: 0; font-family: 'Segoe UI', sans-serif; background: #f4f4f4; }
-        .app-header {
-            position: fixed; top: 0; width: 100%; height: 90px;
-            background: #1a237e; color: white; display: flex;
-            align-items: center; justify-content: space-between;
-            padding: 0 15px; z-index: 1000; box-sizing: border-box;
-        }
-        .station-logo { height: 55px; width: 55px; border-radius: 50%; border: 2px solid #ffca28; }
+        .app-header { position: fixed; top: 0; width: 100%; height: 100px; background: #1a237e; color: white; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; z-index: 1000; box-sizing: border-box; }
+        .station-logo { height: 60px; width: 60px; border-radius: 50%; border: 2px solid #ffca28; background: #fff; }
         .station-info { flex-grow: 1; text-align: center; }
-        .station-info h2 { margin: 0; font-size: 1.1rem; }
-        #station-name { margin-top: 5px; font-size: 0.9rem; }
-        #map { height: calc(100vh - 90px); width: 100%; margin-top: 90px; }
-        
-        /* تصميم عداد الوقود */
-        .fuel-container { width: 80%; background: #555; border-radius: 10px; margin: 5px auto; overflow: hidden; border: 1px solid #fff; }
-        .fuel-bar { height: 15px; text-align: center; line-height: 15px; color: white; font-size: 10px; transition: width 0.5s; }
-        .status-badge { padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; margin-right: 5px; color: white; }
+        #fuel-status { width: 80%; background: #444; border-radius: 10px; margin: 5px auto; height: 20px; border: 1px solid #fff; overflow: hidden; }
+        #fuel-bar { height: 100%; width: 0%; transition: width 1s; text-align: center; color: white; font-size: 12px; line-height: 20px; }
+        #map { height: calc(100vh - 100px); margin-top: 100px; }
     </style>
 </head>
 <body>
 
-    <div class="app-header">
-        <img src="logo.png" alt="Logo" class="station-logo">
-        <div class="station-info">
-            <h2 id="city-name">ليبيا</h2>
-            <div id="station-name">اختر محطة من الخريطة لمعرفة المنسوب</div>
-        </div>
-        <div style="width: 55px;"></div> 
+<div class="app-header">
+    <img src="logo.png" alt="Logo" class="station-logo">
+    <div class="station-info">
+        <h2 id="city-name">اختر محطة</h2>
+        <div id="fuel-status"><div id="fuel-bar">0%</div></div>
     </div>
+    <div style="width:60px"></div>
+</div>
 
-    <div id="map"></div>
+<div id="map"></div>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script>
-        var map = L.map('map').setView([28.0, 17.0], 6); // خريطة ليبيا
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    // إعدادات Firebase الخاصة بك من الصورة
+    const firebaseConfig = {
+        apiKey: "AIzaSyDyttHKoQCtFAU_7CXzMBDJah_OOS44qzM",
+        authDomain: "libya-fuel.firebaseapp.com",
+        databaseURL: "https://libya-fuel-default-rtdb.firebaseio.com",
+        projectId: "libya-fuel",
+        storageBucket: "libya-fuel.appspot.com",
+        messagingSenderId: "381632162782",
+        appId: "1:381632162782:web:7f52b43630a7e683df4b4f"
+    };
 
-        var stations = [
-            { city: "طرابلس", name: "محطة زاوية الدهماني", lat: 32.895, lng: 13.195, level: 85 },
-            { city: "بنغازي", name: "محطة الفويهات", lat: 32.116, lng: 20.066, level: 18 },
-            { city: "مصراتة", name: "محطة وسط المدينة", lat: 32.375, lng: 15.092, level: 55 }
-        ];
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-        function updateHeader(city, station, level) {
-            document.getElementById('city-name').innerText = city;
-            let color = level > 50 ? '#4CAF50' : (level > 20 ? '#FFC107' : '#F44336');
-            let statusText = level > 20 ? "متوفر" : "منخفض جداً";
-            
-            document.getElementById('station-name').innerHTML = `
-                ${station} <span class="status-badge" style="background:${color}">${statusText}</span>
-                <div class="fuel-container">
-                    <div class="fuel-bar" style="width: ${level}%; background-color: ${color};">
-                        ${level}%
-                    </div>
-                </div>
-            `;
-        }
+    var map = L.map('map').setView([28.0, 17.0], 6);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-        stations.forEach(function(s) {
-            var marker = L.marker([s.lat, s.lng]).addTo(map);
-            marker.on('click', function() {
-                updateHeader(s.city, s.name, s.level);
+    // دالة لتحديث الواجهة عند وصول بيانات من الحساس
+    function updateUI(city, level) {
+        document.getElementById('city-name').innerText = city;
+        const bar = document.getElementById('fuel-bar');
+        bar.style.width = level + "%";
+        bar.innerText = level + "%";
+        bar.style.backgroundColor = level > 50 ? "#4CAF50" : (level > 20 ? "#FFC107" : "#F44336");
+    }
+
+    // ربط علامات الخريطة ببيانات Firebase
+    const stations = [
+        { id: "tripoli", city: "طرابلس", lat: 32.89, lng: 13.19 },
+        { id: "benghazi", city: "بنغازي", lat: 32.11, lng: 20.06 }
+    ];
+
+    stations.forEach(s => {
+        let marker = L.marker([s.lat, s.lng]).addTo(map);
+        marker.on('click', () => {
+            // جلب القراءة "الحية" من Firebase
+            db.ref('stations/' + s.id).on('value', (snap) => {
+                updateUI(s.city, snap.val() || 0);
             });
         });
-    </script>
+    });
+</script>
 </body>
 </html>
