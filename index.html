@@ -1,44 +1,75 @@
-<style>
-    /* إضافة شكل عداد الوقود */
-    .fuel-container {
-        width: 100%; background-color: #ddd; border-radius: 5px; margin-top: 10px;
-    }
-    .fuel-bar {
-        height: 20px; text-align: center; line-height: 20px; color: white;
-        border-radius: 5px; transition: width 0.5s; font-size: 12px;
-    }
-    .status-badge {
-        padding: 5px; border-radius: 3px; font-weight: bold; font-size: 0.8rem;
-    }
-</style>
-
-<script>
-    // تحديث البيانات لتشمل منسوب الوقود (كمثال من الحساسات)
-    var stations = [
-        { city: "طرابلس", name: "محطة زاوية الدهماني", lat: 32.895, lng: 13.195, level: 85 },
-        { city: "بنغازي", name: "محطة الفويهات", lat: 32.116, lng: 20.066, level: 15 }
-    ];
-
-    function updateHeader(city, station, level) {
-        document.getElementById('city-name').innerText = city;
-        // تحديد لون العداد بناءً على المستوى
-        let color = level > 50 ? '#4CAF50' : (level > 20 ? '#FFC107' : '#F44336');
-        let statusText = level > 20 ? "متوفر" : "شبه فارغ";
+<!DOCTYPE html>
+<html dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <title>تطبيق وقود ليبيا - Level Sensing</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: #f4f4f4; }
+        .app-header {
+            position: fixed; top: 0; width: 100%; height: 90px;
+            background: #1a237e; color: white; display: flex;
+            align-items: center; justify-content: space-between;
+            padding: 0 15px; z-index: 1000; box-sizing: border-box;
+        }
+        .station-logo { height: 55px; width: 55px; border-radius: 50%; border: 2px solid #ffca28; }
+        .station-info { flex-grow: 1; text-align: center; }
+        .station-info h2 { margin: 0; font-size: 1.1rem; }
+        #station-name { margin-top: 5px; font-size: 0.9rem; }
+        #map { height: calc(100vh - 90px); width: 100%; margin-top: 90px; }
         
-        document.getElementById('station-name').innerHTML = `
-            ${station} | <span class="status-badge" style="background:${color}">${statusText}</span>
-            <div class="fuel-container">
-                <div class="fuel-bar" style="width: ${level}%; background-color: ${color};">
-                    المستوى: ${level}%
-                </div>
-            </div>
-        `;
-    }
+        /* تصميم عداد الوقود */
+        .fuel-container { width: 80%; background: #555; border-radius: 10px; margin: 5px auto; overflow: hidden; border: 1px solid #fff; }
+        .fuel-bar { height: 15px; text-align: center; line-height: 15px; color: white; font-size: 10px; transition: width 0.5s; }
+        .status-badge { padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; margin-right: 5px; color: white; }
+    </style>
+</head>
+<body>
 
-    stations.forEach(function(s) {
-        var marker = L.marker([s.lat, s.lng]).addTo(map);
-        marker.on('click', function() {
-            updateHeader(s.city, s.name, s.level);
+    <div class="app-header">
+        <img src="logo.png" alt="Logo" class="station-logo">
+        <div class="station-info">
+            <h2 id="city-name">ليبيا</h2>
+            <div id="station-name">اختر محطة من الخريطة لمعرفة المنسوب</div>
+        </div>
+        <div style="width: 55px;"></div> 
+    </div>
+
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        var map = L.map('map').setView([28.0, 17.0], 6); // خريطة ليبيا
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+        var stations = [
+            { city: "طرابلس", name: "محطة زاوية الدهماني", lat: 32.895, lng: 13.195, level: 85 },
+            { city: "بنغازي", name: "محطة الفويهات", lat: 32.116, lng: 20.066, level: 18 },
+            { city: "مصراتة", name: "محطة وسط المدينة", lat: 32.375, lng: 15.092, level: 55 }
+        ];
+
+        function updateHeader(city, station, level) {
+            document.getElementById('city-name').innerText = city;
+            let color = level > 50 ? '#4CAF50' : (level > 20 ? '#FFC107' : '#F44336');
+            let statusText = level > 20 ? "متوفر" : "منخفض جداً";
+            
+            document.getElementById('station-name').innerHTML = `
+                ${station} <span class="status-badge" style="background:${color}">${statusText}</span>
+                <div class="fuel-container">
+                    <div class="fuel-bar" style="width: ${level}%; background-color: ${color};">
+                        ${level}%
+                    </div>
+                </div>
+            `;
+        }
+
+        stations.forEach(function(s) {
+            var marker = L.marker([s.lat, s.lng]).addTo(map);
+            marker.on('click', function() {
+                updateHeader(s.city, s.name, s.level);
+            });
         });
-    });
-</script>
+    </script>
+</body>
+</html>
